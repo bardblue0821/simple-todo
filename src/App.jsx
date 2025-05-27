@@ -1,0 +1,62 @@
+import { useState, useEffect } from 'react'
+import Logo from './Logo'
+import MenuBar from './MenuBar'
+import TodoModal from './TodoModal'
+import TodoBoard from './TodoBoard'
+
+const STORAGE_KEY = 'todo-app-tasks-v1';
+
+function App() {
+  // localStorageから初期値を取得
+  const [todos, setTodos] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [modalOpen, setModalOpen] = useState(false)
+
+  // todosが変わるたびlocalStorageに保存
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+  }, [todos]);
+
+  const handleNewTodo = (title) => {
+    setTodos([
+      ...todos,
+      { id: Date.now(), title, area: 'urgent_important', done: false }
+    ])
+    setModalOpen(false)
+  }
+
+  // タスク移動用
+  const handleMoveTodo = (id, newArea) => {
+    setTodos(todos => todos.map(todo =>
+      todo.id === id ? { ...todo, area: newArea } : todo
+    ))
+  }
+
+  // チェックボックス切り替え
+  const handleToggleDone = (id) => {
+    setTodos(todos => todos.map(todo =>
+      todo.id === id ? { ...todo, done: !todo.done } : todo
+    ))
+  }
+
+  return (
+    <div style={{ display: 'flex', height: '100vh', background: '#f3f4f6' }}>
+      <div style={{ width: 220, background: '#fff', boxShadow: '2px 0 8px #e5e7eb' }}>
+        <Logo />
+        <MenuBar onNewTodo={() => setModalOpen(true)} />
+      </div>
+      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <TodoBoard todos={todos} onMove={handleMoveTodo} onToggle={handleToggleDone} />
+      </main>
+      <TodoModal open={modalOpen} onClose={() => setModalOpen(false)} onSubmit={handleNewTodo} />
+    </div>
+  )
+}
+
+export default App
