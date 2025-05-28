@@ -1,49 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 
 export default function TodoBoard({ todos, onMove, onToggle }) {
-  // 4象限に分類
-  const areas = {
-    important: [],
-    urgent_important: [],
-    urgent: [],
-    low: [],
-  };
-  todos.forEach(todo => {
-    if (todo.area === 'urgent_important') areas.urgent_important.push(todo);
-    else if (todo.area === 'important') areas.important.push(todo);
-    else if (todo.area === 'urgent') areas.urgent.push(todo);
-    else areas.low.push(todo);
-  });
+  // 4象限に分類（useMemoで最適化）
+  const areas = useMemo(() => {
+    const result = { important: [], urgent_important: [], urgent: [], low: [] };
+    todos.forEach(todo => {
+      if (todo.area === 'urgent_important') result.urgent_important.push(todo);
+      else if (todo.area === 'important') result.important.push(todo);
+      else if (todo.area === 'urgent') result.urgent.push(todo);
+      else result.low.push(todo);
+    });
+    return result;
+  }, [todos]);
 
-  // エリアごとの背景色
-  const areaBgColors = {
-    important: '#e6fbe6', // 薄い緑
-    urgent_important: '#ffeaea', // 薄い赤
-    urgent: '#fff5e6', // 薄いオレンジ
-    low: '#f3f4f6', // 薄い灰色
-  };
+  // tailwindで色を指定
+  const areaTailwind = useMemo(() => ({
+    important: 'bg-green-50',
+    urgent_important: 'bg-red-50',
+    urgent: 'bg-orange-50',
+    low: 'bg-gray-100',
+  }), []);
 
-  // エリアのスタイルを拡張
-  const areaStyle = (area) => ({
-    border: '1px solid #e5e7eb',
-    borderRadius: 12,
-    minHeight: 220,
-    minWidth: 320,
-    padding: 24,
-    margin: 12,
-    background: areaBgColors[area],
-    flex: 1,
-    boxSizing: 'border-box',
-    transition: 'background 0.2s',
-  });
-
-  // ドラッグ中のタスクIDを管理
+  // ドラッグ中のタスクIDとドロップ先インデックスを管理
   const [draggingId, setDraggingId] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [dragOverArea, setDragOverArea] = useState(null);
+  const [detailTask, setDetailTask] = useState(null);
 
   // ドラッグイベントハンドラ
-  const handleDragStart = (e, todoId, todo) => {
+  const handleDragStart = useCallback((e, todoId, todo) => {
     e.dataTransfer.setData('text/plain', todoId);
     setDraggingId(todoId);
+    setDragOverIndex(null);
+    setDragOverArea(null);
     // カスタムドラッグイメージ
     const dragGhost = document.createElement('div');
     dragGhost.style.position = 'absolute';
@@ -59,112 +48,175 @@ export default function TodoBoard({ todos, onMove, onToggle }) {
     document.body.appendChild(dragGhost);
     e.dataTransfer.setDragImage(dragGhost, 60, 20);
     setTimeout(() => document.body.removeChild(dragGhost), 0);
-  };
-  const handleDrop = (e, area) => {
-    e.preventDefault();
-    const todoId = e.dataTransfer.getData('text/plain');
-    onMove(Number(todoId), area);
-    setDraggingId(null);
-  };
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
-  const handleDragEnd = () => {
-    setDraggingId(null);
-  };
+  }, []);
 
-  // タスク詳細ウィンドウ用
-  const [detailTask, setDetailTask] = useState(null);
+  const handleDrop = useCallback((e, area, index = null) => {
+    e.preventDefault();
+    const todoId = Number(e.dataTransfer.getData('text/plain'));
+    setDraggingId(null);
+    setDragOverIndex(null);
+    setDragOverArea(null);
+    if (todoId == null || area == null) return;
+    // 同じエリア内で順序入れ替え
+    if (area === getAreaByTodoId(todoId)) {
+      const areaList = areas[area].map(t => t.id);
+      const fromIdx = areaList.indexOf(todoId);
+      let toIdx = index;
+      if (fromIdx < 0 || toIdx == null) return;
+      if (fromIdx < toIdx) toIdx--;
+      if (fromIdx === toIdx || fromIdx + 1 === toIdx) return;
+      const newOrder = [...areaList];
+      newOrder.splice(fromIdx, 1);
+      newOrder.splice(toIdx, 0, todoId);
+      const newTodos = [];
+      todos.forEach(todo => {
+        if (todo.area === area) return;
+        newTodos.push(todo);
+      });
+      newOrder.forEach(id => {
+        const t = todos.find(todo => todo.id === id);
+        if (t) newTodos.push(t);
+      });
+      onMoveOrder(newTodos);
+    } else {
+      // エリア移動（index位置に挿入）
+      const areaList = areas[area].map(t => t.id);
+      let toIdx = index;
+      if (toIdx == null) toIdx = areaList.length;
+      const newTodos = [];
+      let inserted = false;
+      todos.forEach(todo => {
+        if (todo.id === todoId) return;
+        if (todo.area === area && newTodos.filter(t => t.area === area).length === toIdx && !inserted) {
+          const moved = { ...todos.find(t => t.id === todoId), area };
+          newTodos.push(moved);
+          inserted = true;
+        }
+        newTodos.push(todo);
+      });
+      if (!inserted) {
+        const moved = { ...todos.find(t => t.id === todoId), area };
+        newTodos.push(moved);
+      }
+      onMoveOrder(newTodos);
+    }
+  }, [areas, todos]);
+
+  const handleDragOver = useCallback((e, area, index = null) => {
+    e.preventDefault();
+    setDragOverArea(area);
+    setDragOverIndex(index);
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggingId(null);
+    setDragOverIndex(null);
+    setDragOverArea(null);
+  }, []);
+
+  // エリア名取得
+  const getAreaByTodoId = useCallback((id) => {
+    for (const key in areas) {
+      if (areas[key].some(t => t.id === id)) return key;
+    }
+    return null;
+  }, [areas]);
+
+  // 親(App)に順序変更を伝える
+  const onMoveOrder = useCallback((newTodos) => {
+    if (typeof onMove === 'function') {
+      onMove(newTodos, '__reorder');
+    }
+  }, [onMove]);
 
   // タスク描画用
-  const renderTask = (todo) => (
-    <div
-      key={todo.id}
-      style={{
-        display: 'flex', alignItems: 'center', margin: 6, padding: 12, background: draggingId === todo.id ? '#e0e7ff' : '#fff', borderRadius: 6, position: 'relative', opacity: draggingId === todo.id ? 0.5 : 1, transition: 'background 0.2s, opacity 0.2s', cursor: 'pointer', boxShadow: '0 1px 4px #e5e7eb',
-      }}
-      onClick={e => { if (e.target.type !== 'checkbox') setDetailTask(todo); }}
-    >
-      <input
-        type="checkbox"
-        checked={!!todo.done}
-        onChange={() => onToggle(todo.id)}
-        style={{ marginRight: 8 }}
-        onClick={e => e.stopPropagation()}
-      />
-      <span style={{ textDecoration: todo.done ? 'line-through' : 'none', color: todo.done ? '#9ca3af' : undefined, flex: 1 }}>
-        {todo.title}
-      </span>
-      <span
-        draggable
-        onDragStart={e => handleDragStart(e, todo.id, todo)}
-        onDragEnd={handleDragEnd}
-        style={{
-          marginLeft: 12,
-          cursor: 'grab',
-          display: 'flex',
-          alignItems: 'center',
-          userSelect: 'none',
-          padding: '0 4px',
-        }}
-        title="ドラッグして移動"
-        onClick={e => e.stopPropagation()}
-      >
-        <svg width="18" height="18" viewBox="0 0 18 18" style={{ display: 'block' }}>
-          <rect x="4" y="4" width="10" height="2" rx="1" fill="#bbb" />
-          <rect x="4" y="8" width="10" height="2" rx="1" fill="#bbb" />
-          <rect x="4" y="12" width="10" height="2" rx="1" fill="#bbb" />
-        </svg>
-      </span>
-    </div>
-  );
+  const renderTask = useCallback((todo, idx, areaKey, areaList) => {
+    // プレビュー用: ドラッグ中のタスクがこの位置に割り込む場合、仮のスペースを挿入
+    const isPreview = dragOverArea === areaKey && dragOverIndex === idx && draggingId !== null;
+    return (
+      <React.Fragment key={todo.id}>
+        {/* タスクの直前にプレビューを表示 */}
+        {isPreview && (
+          <div className="h-10 my-1 rounded border-2 border-dashed border-indigo-400 bg-indigo-100/60 animate-pulse flex items-center justify-center text-indigo-500 font-bold transition-all duration-200">
+            ここに配置
+          </div>
+        )}
+        <div
+          className={`flex items-center m-1 p-2 bg-white rounded shadow-sm relative transition-all ${draggingId === todo.id ? 'bg-indigo-100 opacity-50' : ''} cursor-pointer`}
+          onClick={e => { if (e.target.type !== 'checkbox') setDetailTask(todo); }}
+          draggable={false}
+          onDragOver={e => handleDragOver(e, areaKey, idx)}
+          onDrop={e => handleDrop(e, areaKey, idx)}
+        >
+          <input
+            type="checkbox"
+            checked={!!todo.done}
+            onChange={() => onToggle(todo.id)}
+            className="mr-2"
+            onClick={e => e.stopPropagation()}
+          />
+          <span className={`flex-1 ${todo.done ? 'line-through text-gray-400' : ''}`}>
+            {todo.title}
+          </span>
+          <span
+            draggable
+            onDragStart={e => handleDragStart(e, todo.id, todo)}
+            onDragEnd={handleDragEnd}
+            className="ml-3 cursor-grab select-none px-1"
+            title="ドラッグして移動"
+            onClick={e => e.stopPropagation()}
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" className="block">
+              <rect x="4" y="4" width="10" height="2" rx="1" fill="#bbb" />
+              <rect x="4" y="8" width="10" height="2" rx="1" fill="#bbb" />
+              <rect x="4" y="12" width="10" height="2" rx="1" fill="#bbb" />
+            </svg>
+          </span>
+        </div>
+      </React.Fragment>
+    );
+  }, [draggingId, dragOverArea, dragOverIndex, handleDragOver, handleDrop, onToggle, setDetailTask, handleDragStart, handleDragEnd]);
 
   // タスク詳細ウィンドウ
-  const renderDetailModal = () => detailTask && (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-      background: 'rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000
-    }} onClick={() => setDetailTask(null)}>
-      <div style={{ background: '#fff', padding: 32, borderRadius: 12, minWidth: 320, boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }} onClick={e => e.stopPropagation()}>
-        <h2 style={{ marginBottom: 16 }}>タスク詳細</h2>
-        <div style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 8 }}>{detailTask.title}</div>
+  const renderDetailModal = useCallback(() => detailTask && (
+    <div className="fixed top-0 left-0 w-screen h-screen bg-black/20 flex items-center justify-center z-[2000]" onClick={() => setDetailTask(null)}>
+      <div className="bg-white p-8 rounded-xl min-w-[320px] shadow-xl" onClick={e => e.stopPropagation()}>
+        <h2 className="mb-4 text-lg font-bold">タスク詳細</h2>
+        <div className="font-bold text-base mb-2">{detailTask.title}</div>
         <div>エリア: {detailTask.area === 'urgent_important' ? '緊急かつ重要' : detailTask.area === 'important' ? '重要' : detailTask.area === 'urgent' ? '緊急' : '低優先'}</div>
         <div>完了: {detailTask.done ? '✔' : '未完了'}</div>
-        <button style={{ marginTop: 24, padding: '0.5rem 1.5rem', background: '#6366f1', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 'bold', cursor: 'pointer' }} onClick={() => setDetailTask(null)}>閉じる</button>
+        <button className="mt-6 px-6 py-2 bg-indigo-500 text-white rounded font-bold" onClick={() => setDetailTask(null)}>閉じる</button>
       </div>
     </div>
-  );
+  ), [detailTask]);
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: 32, width: '100%', height: 700, padding: 24 }}>
-      <div style={areaStyle('important')}
-        onDrop={e => handleDrop(e, 'important')}
-        onDragOver={handleDragOver}
-      >
-        <div style={{ fontWeight: 'bold', marginBottom: 12 }}>重要エリア</div>
-        {areas.important.map(renderTask)}
-      </div>
-      <div style={areaStyle('urgent_important')}
-        onDrop={e => handleDrop(e, 'urgent_important')}
-        onDragOver={handleDragOver}
-      >
-        <div style={{ fontWeight: 'bold', marginBottom: 12 }}>緊急かつ重要エリア</div>
-        {areas.urgent_important.map(renderTask)}
-      </div>
-      <div style={areaStyle('low')}
-        onDrop={e => handleDrop(e, 'low')}
-        onDragOver={handleDragOver}
-      >
-        <div style={{ fontWeight: 'bold', marginBottom: 12 }}>低優先エリア</div>
-        {areas.low.map(renderTask)}
-      </div>
-      <div style={areaStyle('urgent')}
-        onDrop={e => handleDrop(e, 'urgent')}
-        onDragOver={handleDragOver}
-      >
-        <div style={{ fontWeight: 'bold', marginBottom: 12 }}>緊急エリア</div>
-        {areas.urgent.map(renderTask)}
-      </div>
+    <div className="w-full h-full grid grid-cols-2 grid-rows-2 gap-6 p-6 max-h-[90vh] max-w-[1200px] mx-auto">
+      {Object.entries(areas).map(([areaKey, areaList]) => (
+        <div
+          key={areaKey}
+          className={`flex flex-col ${areaTailwind[areaKey]} overflow-auto rounded-xl border border-gray-200 p-4 min-h-[200px] min-w-[200px]`}
+          onDrop={e => handleDrop(e, areaKey, areaList.length)}
+          onDragOver={e => handleDragOver(e, areaKey, areaList.length)}
+        >
+          <div className="font-bold mb-3">
+            {areaKey === 'important' ? '重要エリア' : areaKey === 'urgent_important' ? '緊急かつ重要エリア' : areaKey === 'urgent' ? '緊急エリア' : '低優先エリア'}
+          </div>
+          {/* 先頭にプレビュー */}
+          {dragOverArea === areaKey && dragOverIndex === 0 && draggingId !== null && (
+            <div className="h-10 my-1 rounded border-2 border-dashed border-indigo-400 bg-indigo-100/60 animate-pulse flex items-center justify-center text-indigo-500 font-bold transition-all duration-200">
+              ここに配置
+            </div>
+          )}
+          {areaList.map((todo, idx) => renderTask(todo, idx, areaKey, areaList))}
+          {/* 最後の位置にもドロッププレビュー */}
+          {dragOverArea === areaKey && dragOverIndex === areaList.length && draggingId !== null && (
+            <div className="h-10 my-1 rounded border-2 border-dashed border-indigo-400 bg-indigo-100/60 animate-pulse flex items-center justify-center text-indigo-500 font-bold transition-all duration-200">
+              ここに配置
+            </div>
+          )}
+        </div>
+      ))}
       {renderDetailModal()}
     </div>
   );
