@@ -1,7 +1,15 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 
 export default function TodoModal({ open, onClose, onSubmit }) {
   const [title, setTitle] = useState('');
+  const inputRef = useRef(null);
+
+  // モーダルが開いたときに入力欄にフォーカス
+  useEffect(() => {
+    if (open && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [open]);
 
   // モーダルが閉じられたら入力値をリセット
   React.useEffect(() => {
@@ -46,6 +54,7 @@ export default function TodoModal({ open, onClose, onSubmit }) {
           onKeyDown={handleKeyDown}
           placeholder="タイトルを入力"
           style={{ width: '100%', padding: 8, marginBottom: 16, fontSize: 16 }}
+          ref={inputRef}
         />
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose} style={{ padding: '0.5rem 1rem', background: '#e5e7eb', border: 'none', borderRadius: 6 }}>キャンセル</button>
