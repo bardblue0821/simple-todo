@@ -40,27 +40,28 @@ export default function TodoModal({ open, onClose, onSubmit }) {
   if (!open) return null;
 
   return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-      background: 'rgba(0,0,0,0.3)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
-    }}>
-      <div style={{ background: '#fff', padding: 32, borderRadius: 12, minWidth: 320, boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
-        <h2 style={{ marginBottom: 16 }}>新規Todo作成</h2>
+    <div className="fixed inset-0 w-screen h-screen bg-black/30 flex items-center justify-center z-[1000]">
+      <div className="bg-white p-8 rounded-xl min-w-[320px] shadow-lg">
+        <h2 className="mb-4 text-xl font-bold">新規Todo作成</h2>
         <input
           type="text"
           value={title}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           placeholder="タイトルを入力"
-          style={{ width: '100%', padding: 8, marginBottom: 16, fontSize: 16 }}
+          className="w-full p-2 mb-4 text-base border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
           ref={inputRef}
         />
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ padding: '0.5rem 1rem', background: '#e5e7eb', border: 'none', borderRadius: 6 }}>キャンセル</button>
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-200 rounded font-medium hover:bg-gray-300"
+          >
+            キャンセル
+          </button>
           <button
             onClick={handleSubmit}
-            style={{ padding: '0.5rem 1rem', background: '#6366f1', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 'bold' }}
+            className="px-4 py-2 bg-indigo-600 text-white rounded font-bold hover:bg-indigo-700"
           >
             確定
           </button>
