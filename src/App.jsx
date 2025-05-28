@@ -31,12 +31,24 @@ function App() {
     setModalOpen(false)
   }
 
-  // タスク移動用
-  const handleMoveTodo = (id, newArea) => {
+  // タスク移動用（エリア移動 or 並び替え）
+  const handleMoveTodo = (arg1, arg2) => {
+    // 並び替え（配列渡し）
+    if (Array.isArray(arg1)) {
+      setTodos(arg1);
+      return;
+    }
+    // __reorderフラグが来た場合も配列渡し
+    if (arg2 === '__reorder') {
+      setTodos(arg1);
+      return;
+    }
+    // エリア移動（従来通り）
+    const id = arg1, newArea = arg2;
     setTodos(todos => todos.map(todo =>
       todo.id === id ? { ...todo, area: newArea } : todo
-    ))
-  }
+    ));
+  };
 
   // チェックボックス切り替え
   const handleToggleDone = (id) => {
