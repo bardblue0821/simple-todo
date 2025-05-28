@@ -155,8 +155,10 @@ export default function TodoBoard({ todos, onMove, onToggle }) {
             className="mr-2"
             onClick={e => e.stopPropagation()}
           />
-          <span className={`flex-1 ${todo.done ? 'line-through text-gray-400' : ''}`}>
-            {todo.title}
+          <span className={`flex-1 ${todo.done ? 'line-through text-gray-400' : ''}`}
+            title={todo.title}
+          >
+            {todo.title.length > 15 ? todo.title.slice(0, 15) + '…' : todo.title}
           </span>
           <span
             draggable
@@ -182,7 +184,7 @@ export default function TodoBoard({ todos, onMove, onToggle }) {
     <div className="fixed top-0 left-0 w-screen h-screen bg-black/20 flex items-center justify-center z-[2000]" onClick={() => setDetailTask(null)}>
       <div className="bg-white p-8 rounded-xl min-w-[320px] shadow-xl" onClick={e => e.stopPropagation()}>
         <h2 className="mb-4 text-lg font-bold">タスク詳細</h2>
-        <div className="font-bold text-base mb-2">{detailTask.title}</div>
+        <div className="font-bold text-base mb-2 break-all">{detailTask.title}</div>
         <div>エリア: {detailTask.area === 'urgent_important' ? '緊急かつ重要' : detailTask.area === 'important' ? '重要' : detailTask.area === 'urgent' ? '緊急' : '低優先'}</div>
         <div>完了: {detailTask.done ? '✔' : '未完了'}</div>
         <button className="mt-6 px-6 py-2 bg-indigo-500 text-white rounded font-bold" onClick={() => setDetailTask(null)}>閉じる</button>
@@ -192,31 +194,86 @@ export default function TodoBoard({ todos, onMove, onToggle }) {
 
   return (
     <div className="w-full h-full grid grid-cols-2 grid-rows-2 gap-6 p-6 max-h-[90vh] max-w-[1200px] mx-auto">
-      {Object.entries(areas).map(([areaKey, areaList]) => (
-        <div
-          key={areaKey}
-          className={`flex flex-col ${areaTailwind[areaKey]} overflow-auto rounded-xl border border-gray-200 p-4 min-h-[200px] min-w-[200px]`}
-          onDrop={e => handleDrop(e, areaKey, areaList.length)}
-          onDragOver={e => handleDragOver(e, areaKey, areaList.length)}
-        >
-          <div className="font-bold mb-3">
-            {areaKey === 'important' ? '重要エリア' : areaKey === 'urgent_important' ? '緊急かつ重要エリア' : areaKey === 'urgent' ? '緊急エリア' : '低優先エリア'}
+      {/* 左上: 緊急かつ重要 */}
+      <div
+        key="urgent_important"
+        className={`flex flex-col ${areaTailwind['urgent_important']} overflow-auto rounded-xl border border-gray-200 p-4 min-h-[200px] min-w-[200px]`}
+        onDrop={e => handleDrop(e, 'urgent_important', areas['urgent_important'].length)}
+        onDragOver={e => handleDragOver(e, 'urgent_important', areas['urgent_important'].length)}
+      >
+        <div className="font-bold mb-3">緊急かつ重要エリア</div>
+        {dragOverArea === 'urgent_important' && dragOverIndex === 0 && draggingId !== null && (
+          <div className="h-10 my-1 rounded border-2 border-dashed border-indigo-400 bg-indigo-100/60 animate-pulse flex items-center justify-center text-indigo-500 font-bold transition-all duration-200">
+            ここに配置
           </div>
-          {/* 先頭にプレビュー */}
-          {dragOverArea === areaKey && dragOverIndex === 0 && draggingId !== null && (
-            <div className="h-10 my-1 rounded border-2 border-dashed border-indigo-400 bg-indigo-100/60 animate-pulse flex items-center justify-center text-indigo-500 font-bold transition-all duration-200">
-              ここに配置
-            </div>
-          )}
-          {areaList.map((todo, idx) => renderTask(todo, idx, areaKey, areaList))}
-          {/* 最後の位置にもドロッププレビュー */}
-          {dragOverArea === areaKey && dragOverIndex === areaList.length && draggingId !== null && (
-            <div className="h-10 my-1 rounded border-2 border-dashed border-indigo-400 bg-indigo-100/60 animate-pulse flex items-center justify-center text-indigo-500 font-bold transition-all duration-200">
-              ここに配置
-            </div>
-          )}
-        </div>
-      ))}
+        )}
+        {areas['urgent_important'].map((todo, idx) => renderTask(todo, idx, 'urgent_important', areas['urgent_important']))}
+        {dragOverArea === 'urgent_important' && dragOverIndex === areas['urgent_important'].length && draggingId !== null && (
+          <div className="h-10 my-1 rounded border-2 border-dashed border-indigo-400 bg-indigo-100/60 animate-pulse flex items-center justify-center text-indigo-500 font-bold transition-all duration-200">
+            ここに配置
+          </div>
+        )}
+      </div>
+      {/* 右上: 重要 */}
+      <div
+        key="important"
+        className={`flex flex-col ${areaTailwind['important']} overflow-auto rounded-xl border border-gray-200 p-4 min-h-[200px] min-w-[200px]`}
+        onDrop={e => handleDrop(e, 'important', areas['important'].length)}
+        onDragOver={e => handleDragOver(e, 'important', areas['important'].length)}
+      >
+        <div className="font-bold mb-3">重要エリア</div>
+        {dragOverArea === 'important' && dragOverIndex === 0 && draggingId !== null && (
+          <div className="h-10 my-1 rounded border-2 border-dashed border-indigo-400 bg-indigo-100/60 animate-pulse flex items-center justify-center text-indigo-500 font-bold transition-all duration-200">
+            ここに配置
+          </div>
+        )}
+        {areas['important'].map((todo, idx) => renderTask(todo, idx, 'important', areas['important']))}
+        {dragOverArea === 'important' && dragOverIndex === areas['important'].length && draggingId !== null && (
+          <div className="h-10 my-1 rounded border-2 border-dashed border-indigo-400 bg-indigo-100/60 animate-pulse flex items-center justify-center text-indigo-500 font-bold transition-all duration-200">
+            ここに配置
+          </div>
+        )}
+      </div>
+      {/* 左下: 低優先 */}
+      <div
+        key="low"
+        className={`flex flex-col ${areaTailwind['low']} overflow-auto rounded-xl border border-gray-200 p-4 min-h-[200px] min-w-[200px]`}
+        onDrop={e => handleDrop(e, 'low', areas['low'].length)}
+        onDragOver={e => handleDragOver(e, 'low', areas['low'].length)}
+      >
+        <div className="font-bold mb-3">低優先エリア</div>
+        {dragOverArea === 'low' && dragOverIndex === 0 && draggingId !== null && (
+          <div className="h-10 my-1 rounded border-2 border-dashed border-indigo-400 bg-indigo-100/60 animate-pulse flex items-center justify-center text-indigo-500 font-bold transition-all duration-200">
+            ここに配置
+          </div>
+        )}
+        {areas['low'].map((todo, idx) => renderTask(todo, idx, 'low', areas['low']))}
+        {dragOverArea === 'low' && dragOverIndex === areas['low'].length && draggingId !== null && (
+          <div className="h-10 my-1 rounded border-2 border-dashed border-indigo-400 bg-indigo-100/60 animate-pulse flex items-center justify-center text-indigo-500 font-bold transition-all duration-200">
+            ここに配置
+          </div>
+        )}
+      </div>
+      {/* 右下: 緊急 */}
+      <div
+        key="urgent"
+        className={`flex flex-col ${areaTailwind['urgent']} overflow-auto rounded-xl border border-gray-200 p-4 min-h-[200px] min-w-[200px]`}
+        onDrop={e => handleDrop(e, 'urgent', areas['urgent'].length)}
+        onDragOver={e => handleDragOver(e, 'urgent', areas['urgent'].length)}
+      >
+        <div className="font-bold mb-3">緊急エリア</div>
+        {dragOverArea === 'urgent' && dragOverIndex === 0 && draggingId !== null && (
+          <div className="h-10 my-1 rounded border-2 border-dashed border-indigo-400 bg-indigo-100/60 animate-pulse flex items-center justify-center text-indigo-500 font-bold transition-all duration-200">
+            ここに配置
+          </div>
+        )}
+        {areas['urgent'].map((todo, idx) => renderTask(todo, idx, 'urgent', areas['urgent']))}
+        {dragOverArea === 'urgent' && dragOverIndex === areas['urgent'].length && draggingId !== null && (
+          <div className="h-10 my-1 rounded border-2 border-dashed border-indigo-400 bg-indigo-100/60 animate-pulse flex items-center justify-center text-indigo-500 font-bold transition-all duration-200">
+            ここに配置
+          </div>
+        )}
+      </div>
       {renderDetailModal()}
     </div>
   );
