@@ -29,6 +29,14 @@ export default function TodoBoard({ todos, onToggle }) {
     low: { col: 1, row: 2, title: '低優先' },
   }), []);
 
+  // エリアの順番を固定
+  const areaOrder = [
+    'urgent_important', // 緊急かつ重要
+    'important',        // 重要
+    'urgent',           // 緊急
+    'low'               // 低優先
+  ];
+
   // タスク詳細ウィンドウ
   const [detailTask, setDetailTask] = useState(null);
   const renderDetailModal = useCallback(() => detailTask && (
@@ -43,7 +51,7 @@ export default function TodoBoard({ todos, onToggle }) {
   // エリア描画
   const AreaColumn = React.memo(({ areaKey, areaList, title, col, row }) => (
     <div
-      className={`flex flex-col ${areaTailwind[areaKey]} overflow-auto rounded-xl border border-gray-200 p-4 min-h-[200px] min-w-[200px] col-start-${col} row-start-${row}`}
+      className={`flex flex-col h-full ${areaTailwind[areaKey]} overflow-auto rounded-xl border border-gray-200 p-4 min-h-[200px] min-w-[200px] md:col-start-${col} md:row-start-${row}`}
     >
       <div className="font-bold mb-3">{title}</div>
       {areaList.map(renderTask)}
@@ -51,17 +59,20 @@ export default function TodoBoard({ todos, onToggle }) {
   ));
 
   return (
-    <div className="w-full h-full grid grid-cols-2 grid-rows-2 gap-6 p-6 max-h-[90vh] max-w-[1200px] mx-auto">
-      {Object.entries(areaGrid).map(([areaKey, { col, row, title }]) => (
-        <AreaColumn
-          key={areaKey}
-          areaKey={areaKey}
-          areaList={areas[areaKey]}
-          title={title}
-          col={col}
-          row={row}
-        />
-      ))}
+    <div className="w-full h-auto md:h-screen grid grid-cols-1 md:grid-cols-2 md:grid-rows-2 gap-8 p-6 max-w-[1200px] mx-auto items-stretch">
+      {areaOrder.map(areaKey => {
+        const { col, row, title } = areaGrid[areaKey];
+        return (
+          <AreaColumn
+            key={areaKey}
+            areaKey={areaKey}
+            areaList={areas[areaKey]}
+            title={title}
+            col={col}
+            row={row}
+          />
+        );
+      })}
       {renderDetailModal()}
     </div>
   );

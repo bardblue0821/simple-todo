@@ -58,12 +58,12 @@ function App() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: '#f3f4f6' }}>
+    <div className="flex h-[100dvh] md:overflow-hidden">
       <div style={{ width: 220, background: '#fff', boxShadow: '2px 0 8px #e5e7eb' }}>
         <Logo />
         <MenuBar onNewTodo={() => setModalOpen(true)} />
       </div>
-      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <main className="flex-1 flex items-start justify-center min-w-0">
         <TodoBoard todos={todos} onMove={handleMoveTodo} onToggle={handleToggleDone} />
       </main>
       <TodoModal open={modalOpen} onClose={() => setModalOpen(false)} onSubmit={handleNewTodo} />
