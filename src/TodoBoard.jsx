@@ -53,8 +53,8 @@ export default function TodoBoard({ todos, onToggle, onMove }) {
     };
     return (
       <div
-        className={`flex flex-col ${areaTailwind[areaKey]} overflow-hidden rounded-xl border border-gray-200 p-4 md:col-start-${col} md:row-start-${row}`}
-        style={{ height: 'calc(50vh - 1rem)' }} // 1rem=16px分マージン考慮
+        className={`flex flex-col ${areaTailwind[areaKey]} overflow-hidden rounded-xl border border-gray-200 p-4 md:col-start-${col} md:row-start-${row} [height:var(--area-height)] md:[height:calc(50vh-1rem)]`}
+        style={{ '--area-height': 'calc((100vh - 5rem) / 4)' }}
         onDragOver={e => e.preventDefault()}
         onDrop={handleDrop}
       >
@@ -104,7 +104,7 @@ const TaskItem = React.memo(function TaskItem({ todo, onToggle, onShowDetail }) 
   };
   return (
     <div
-      className="flex items-center m-1 p-2 bg-white rounded shadow-sm relative transition-all cursor-pointer select-none"
+      className="flex items-center m-0.5 p-1 bg-white rounded shadow-sm relative transition-all cursor-pointer select-none text-sm"
       onClick={e => {
         if (e.target.type !== 'checkbox') onShowDetail(todo);
       }}
@@ -113,7 +113,7 @@ const TaskItem = React.memo(function TaskItem({ todo, onToggle, onShowDetail }) 
         type="checkbox"
         checked={!!todo.done}
         onChange={() => onToggle(todo.id)}
-        className="mr-2"
+        className="mr-1 h-4 w-4"
         onClick={e => e.stopPropagation()}
       />
       <span
@@ -124,12 +124,12 @@ const TaskItem = React.memo(function TaskItem({ todo, onToggle, onShowDetail }) 
       </span>
       {/* 三本線アイコン */}
       <span
-        className="ml-3 select-none px-1 text-gray-400 cursor-grab active:cursor-grabbing"
+        className="ml-2 select-none px-0.5 text-gray-400 cursor-grab active:cursor-grabbing"
         draggable
         onDragStart={handleDragStart}
         title="ドラッグして移動"
       >
-        <svg width="18" height="18" viewBox="0 0 18 18" className="block">
+        <svg width="16" height="16" viewBox="0 0 18 18" className="block">
           <rect x="4" y="4" width="10" height="2" rx="1" fill="#bbb" />
           <rect x="4" y="8" width="10" height="2" rx="1" fill="#bbb" />
           <rect x="4" y="12" width="10" height="2" rx="1" fill="#bbb" />
