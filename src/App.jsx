@@ -58,17 +58,17 @@ function App() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: '#f3f4f6' }}>
-      <div style={{ width: 220, background: '#fff', boxShadow: '2px 0 8px #e5e7eb' }}>
+    <div className="flex w-screen h-screen">
+      <aside className="w-[220px] bg-white shadow-[2px_0_8px_#e5e7eb] sticky top-0 h-screen flex flex-col">
         <Logo />
         <MenuBar onNewTodo={() => setModalOpen(true)} />
-      </div>
-      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <TodoBoard todos={todos} onMove={handleMoveTodo} onToggle={handleToggleDone} />
+      </aside>
+      <main className="flex-1 flex items-start justify-center overflow-y-auto">
+        <TodoBoard todos={todos} onMove={handleMoveTodo} onToggle={handleToggleDone}/>
       </main>
-      <TodoModal open={modalOpen} onClose={() => setModalOpen(false)} onSubmit={handleNewTodo} />
+      <TodoModal open={modalOpen} onClose={() => setModalOpen(false)} onSubmit={handleNewTodo}/>
     </div>
-  )
+  );
 }
 
 export default App

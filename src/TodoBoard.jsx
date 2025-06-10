@@ -29,6 +29,14 @@ export default function TodoBoard({ todos, onToggle }) {
     low: { col: 1, row: 2, title: '低優先' },
   }), []);
 
+  // エリアの順番を固定
+  const areaOrder = [
+    'urgent_important', // 緊急かつ重要
+    'important',        // 重要
+    'urgent',           // 緊急
+    'low'               // 低優先
+  ];
+
   // タスク詳細ウィンドウ
   const [detailTask, setDetailTask] = useState(null);
   const renderDetailModal = useCallback(() => detailTask && (
@@ -40,30 +48,44 @@ export default function TodoBoard({ todos, onToggle }) {
     <TaskItem key={todo.id} todo={todo} onToggle={onToggle} onShowDetail={setDetailTask} />
   ), [onToggle]);
 
-  // エリア描画
-  const AreaColumn = React.memo(({ areaKey, areaList, title, col, row }) => (
+  // 4象限ボード全体をまとめるグリッド
+  const BoardGrid = React.memo(({ children }) => (
+    <div className="m-4 grid grid-cols-1 md:grid-cols-2 md:grid-rows-2 gap-4 items-stretch flex-1">
+      {children}
+    </div>
+  ));
+
+  // エリアカラム（タイトル＋タスクリスト）
+  const AreaColumn = React.memo(({ areaKey, areaList, title, col, row, areaTailwind, renderTask }) => (
     <div
-      className={`flex flex-col ${areaTailwind[areaKey]} overflow-auto rounded-xl border border-gray-200 p-4 min-h-[200px] min-w-[200px] col-start-${col} row-start-${row}`}
+      className={`flex flex-col ${areaTailwind[areaKey]} overflow-hidden rounded-xl border border-gray-200 p-4  md:col-start-${col} md:row-start-${row}`}
     >
-      <div className="font-bold mb-3">{title}</div>
-      {areaList.map(renderTask)}
+      <div className="font-bold mb-3 flex-shrink-0">{title}</div>
+      <div className="flex-1 overflow-auto">
+        {areaList.map(renderTask)}
+      </div>
     </div>
   ));
 
   return (
-    <div className="w-full h-full grid grid-cols-2 grid-rows-2 gap-6 p-6 max-h-[90vh] max-w-[1200px] mx-auto">
-      {Object.entries(areaGrid).map(([areaKey, { col, row, title }]) => (
-        <AreaColumn
-          key={areaKey}
-          areaKey={areaKey}
-          areaList={areas[areaKey]}
-          title={title}
-          col={col}
-          row={row}
-        />
-      ))}
+    <BoardGrid>
+      {areaOrder.map(areaKey => {
+        const { col, row, title } = areaGrid[areaKey];
+        return (
+          <AreaColumn
+            key={areaKey}
+            areaKey={areaKey}
+            areaList={areas[areaKey]}
+            title={title}
+            col={col}
+            row={row}
+            areaTailwind={areaTailwind}
+            renderTask={renderTask}
+          />
+        );
+      })}
       {renderDetailModal()}
-    </div>
+    </BoardGrid>
   );
 }
 
@@ -84,7 +106,7 @@ const TaskItem = React.memo(function TaskItem({ todo, onToggle, onShowDetail }) 
       <span className={`flex-1 ${todo.done ? 'line-through text-gray-400' : ''}`}
         title={todo.title}
       >
-        {todo.title.length > 15 ? todo.title.slice(0, 15) + '…' : todo.title}
+        {todo.title.length > 10 ? todo.title.slice(0, 10) + '…' : todo.title}
       </span>
       <span
         className="ml-3 select-none px-1 text-gray-400"
