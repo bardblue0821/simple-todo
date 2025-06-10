@@ -54,6 +54,7 @@ export default function TodoBoard({ todos, onToggle, onMove }) {
     return (
       <div
         className={`flex flex-col ${areaTailwind[areaKey]} overflow-hidden rounded-xl border border-gray-200 p-4 md:col-start-${col} md:row-start-${row}`}
+        style={{ height: 'calc(50vh - 1rem)' }} // 1rem=16px分マージン考慮
         onDragOver={e => e.preventDefault()}
         onDrop={handleDrop}
       >
@@ -73,7 +74,8 @@ export default function TodoBoard({ todos, onToggle, onMove }) {
   }
 
   return (
-    <div className="m-4 grid grid-cols-1 md:grid-cols-2 md:grid-rows-2 gap-4 items-stretch flex-1">
+    <div className="m-4 grid grid-cols-1 md:grid-cols-2 md:grid-rows-2 gap-4 items-stretch flex-1" style={{ height: 'calc(100vh - 2rem)' }}>
+      {/* 2rem=32px分マージン考慮 */}
       {areaOrder.map(areaKey => {
         const { col, row, title } = areaGrid[areaKey];
         return (
