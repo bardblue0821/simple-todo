@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react'
-import Logo from './Logo'
-import MenuBar from './MenuBar'
-import TodoModal from './TodoModal'
-import TodoBoard from './TodoBoard'
+import { useState, useEffect } from 'react';
+import TodoBoard from './TodoBoard';
+import Logo from './Logo';
+import MenuBar from './MenuBar';
+import TodoModal from './TodoModal';
 
 const STORAGE_KEY = 'todo-app-tasks-v1';
 
 function App() {
-  // localStorageから初期値を取得
+  // タスク一覧の状態管理
   const [todos, setTodos] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -16,46 +16,45 @@ function App() {
       return [];
     }
   });
-  const [modalOpen, setModalOpen] = useState(false)
+  // モーダル表示状態
+  const [modalOpen, setModalOpen] = useState(false);
 
-  // todosが変わるたびlocalStorageに保存
+  // タスク一覧をlocalStorageに保存
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
   }, [todos]);
 
-  const handleNewTodo = (title) => {
-    setTodos([
-      ...todos,
-      { id: Date.now(), title, area: 'urgent_important', done: false }
-    ])
-    setModalOpen(false)
-  }
-
-  // タスク移動用（エリア移動 or 並び替え）
+  // タスクのエリア移動・並び替え
   const handleMoveTodo = (arg1, arg2) => {
-    // 並び替え（配列渡し）
-    if (Array.isArray(arg1)) {
+    if (Array.isArray(arg1) || arg2 === '__reorder') {
       setTodos(arg1);
       return;
     }
-    // __reorderフラグが来た場合も配列渡し
-    if (arg2 === '__reorder') {
-      setTodos(arg1);
-      return;
-    }
-    // エリア移動（従来通り）
-    const id = arg1, newArea = arg2;
-    setTodos(todos => todos.map(todo =>
-      todo.id === id ? { ...todo, area: newArea } : todo
+    const id = arg1;
+    const newArea = arg2;
+    setTodos(prevTodos => {
+      const filtered = prevTodos.filter(todo => todo.id !== id);
+      const moved = prevTodos.find(todo => todo.id === id);
+      if (!moved) return prevTodos;
+      return [...filtered, { ...moved, area: newArea }];
+    });
+  };
+
+  // タスクの完了状態切り替え
+  const handleToggleDone = id => {
+    setTodos(prevTodos => prevTodos.map(todo =>
+      todo.id === id ? { ...todo, done: !todo.done } : todo
     ));
   };
 
-  // チェックボックス切り替え
-  const handleToggleDone = (id) => {
-    setTodos(todos => todos.map(todo =>
-      todo.id === id ? { ...todo, done: !todo.done } : todo
-    ))
-  }
+  // 新規タスク追加
+  const handleNewTodo = title => {
+    setTodos(prevTodos => [
+      ...prevTodos,
+      { id: Date.now(), title, area: 'urgent_important', done: false }
+    ]);
+    setModalOpen(false);
+  };
 
   return (
     <div className="flex w-screen h-screen">
@@ -64,11 +63,19 @@ function App() {
         <MenuBar onNewTodo={() => setModalOpen(true)} />
       </aside>
       <main className="flex-1 flex items-start justify-center overflow-y-auto">
-        <TodoBoard todos={todos} onMove={handleMoveTodo} onToggle={handleToggleDone}/>
+        <TodoBoard
+          todos={todos}
+          onMove={handleMoveTodo}
+          onToggle={handleToggleDone}
+        />
       </main>
-      <TodoModal open={modalOpen} onClose={() => setModalOpen(false)} onSubmit={handleNewTodo}/>
+      <TodoModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSubmit={handleNewTodo}
+      />
     </div>
   );
 }
 
-export default App
+export default App;
