@@ -101,14 +101,22 @@ export default function TodoBoard({ todos, onToggle, onMove }) {
 }
 
 // タスク1件表示（ドラッグ＆ドロップ対応）
-const TaskItem = React.memo(function TaskItem({ todo, onToggle, onShowDetail }) {
+const TaskItem = React.memo(function TaskItem({ todo, onToggle, onShowDetail, draggingId, setDraggingId }) {
   // ドラッグ開始時
   const handleDragStart = e => {
     e.dataTransfer.setData('text/plain', todo.id);
+    setDraggingId && setDraggingId(todo.id);
+  };
+  // ドラッグ終了時
+  const handleDragEnd = () => {
+    setDraggingId && setDraggingId(null);
   };
   return (
     <div
-      className="flex items-center m-0.5 p-1 bg-white rounded shadow-sm relative transition-all cursor-pointer select-none text-sm"
+      className={`flex items-center m-0.5 p-1 bg-white rounded shadow-sm relative transition-all cursor-pointer select-none text-sm${draggingId === todo.id ? ' opacity-50' : ''}`}
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       onClick={e => {
         if (e.target.type !== 'checkbox') onShowDetail(todo);
       }}
@@ -129,8 +137,6 @@ const TaskItem = React.memo(function TaskItem({ todo, onToggle, onShowDetail }) 
       {/* 三本線アイコン */}
       <span
         className="ml-2 select-none px-0.5 text-gray-400 cursor-grab active:cursor-grabbing"
-        draggable
-        onDragStart={handleDragStart}
         title="ドラッグして移動"
       >
         <svg width="16" height="16" viewBox="0 0 18 18" className="block">
