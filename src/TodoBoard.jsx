@@ -41,9 +41,12 @@ export default function TodoBoard({ todos, onToggle, onMove }) {
 
   // エリアカラム（ドラッグ＆ドロップ対応）
   function AreaColumn({ areaKey, areaList, title, col, row }) {
+    // ドラッグオーバー状態
+    const [isDragOver, setIsDragOver] = useState(false);
     // ドロップ時の処理
     const handleDrop = e => {
       e.preventDefault();
+      setIsDragOver(false);
       const todoIdRaw = e.dataTransfer.getData('text/plain');
       const todoId = isNaN(Number(todoIdRaw)) ? todoIdRaw : Number(todoIdRaw);
       const isAlreadyHere = areaList.some(t => t.id === todoId);
@@ -53,9 +56,10 @@ export default function TodoBoard({ todos, onToggle, onMove }) {
     };
     return (
       <div
-        className={`flex flex-col ${areaTailwind[areaKey]} overflow-hidden rounded-xl border border-gray-200 p-4 md:col-start-${col} md:row-start-${row} [height:var(--area-height)] md:[height:calc(50vh-1rem)]`}
+        className={`flex flex-col ${areaTailwind[areaKey]} overflow-hidden rounded-xl border border-gray-200 p-4 md:col-start-${col} md:row-start-${row} [height:var(--area-height)] md:[height:calc(50vh-1rem)]${isDragOver ? ' ring-2 ring-indigo-400 bg-indigo-50/40' : ''}`}
         style={{ '--area-height': 'calc((100vh - 5rem) / 4)' }}
-        onDragOver={e => e.preventDefault()}
+        onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
+        onDragLeave={() => setIsDragOver(false)}
         onDrop={handleDrop}
       >
         <div className="font-bold mb-3 flex-shrink-0">{title}</div>
@@ -120,7 +124,7 @@ const TaskItem = React.memo(function TaskItem({ todo, onToggle, onShowDetail }) 
         className={`flex-1${todo.done ? ' line-through text-gray-400' : ''}`}
         title={todo.title}
       >
-        {todo.title.length > 10 ? todo.title.slice(0, 10) + '…' : todo.title}
+        {todo.title.length > 14 ? todo.title.slice(0, 14) + '…' : todo.title}
       </span>
       {/* 三本線アイコン */}
       <span
