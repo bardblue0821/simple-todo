@@ -169,7 +169,7 @@ const DetailModal = React.memo(function DetailModal({ task, onClose, labelColors
     : task.area === 'important' ? '重要'
     : task.area === 'urgent' ? '緊急'
     : '低優先';
-  const color = labelColors[task.label] || '#e57373';
+  const color = (task.label && task.label !== '未設定') ? (labelColors[task.label] || '#e57373') : '#bdbdbd';
   return (
     <div
       className="fixed top-0 left-0 w-screen h-screen bg-black/20 flex items-center justify-center z-[2000]"

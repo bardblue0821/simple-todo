@@ -74,7 +74,17 @@ function App() {
     <div className="flex w-screen h-screen">
       <aside className="w-[220px] bg-white shadow-[2px_0_8px_#e5e7eb] sticky top-0 h-screen flex flex-col">
         <Logo />
-        <MenuBar onNewTodo={() => setModalOpen(true)} onNewLabel={() => setLabelModalOpen(true)} />
+        <MenuBar 
+          onNewTodo={() => setModalOpen(true)} 
+          onNewLabel={() => setLabelModalOpen(true)} 
+          labels={labels} 
+          onDeleteLabel={labelToDelete => {
+            setLabels(prev => prev.filter(l => l.label !== labelToDelete));
+            setTodos(prevTodos => prevTodos.map(todo =>
+              todo.label === labelToDelete ? { ...todo, label: '未設定' } : todo
+            ));
+          }}
+        />
       </aside>
       <main className="flex-1 flex items-start justify-center overflow-y-auto">
         <TodoBoard
