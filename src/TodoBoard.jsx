@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function TodoBoard({ todos, onToggle, onMove }) {
+export default function TodoBoard({ todos, onToggle, onMove, labels = [], hiddenLabels = [] }) {
   // タスクを4象限に分類
   const areas = {
     important: [],
@@ -8,7 +8,12 @@ export default function TodoBoard({ todos, onToggle, onMove }) {
     urgent: [],
     low: [],
   };
-  todos.forEach(todo => {
+  // 表示対象のタスクのみ抽出
+  const visibleTodos = todos.map(todo => ({
+    ...todo,
+    _isHidden: hiddenLabels.includes(todo.label)
+  }));
+  visibleTodos.forEach(todo => {
     areas[todo.area] ? areas[todo.area].push(todo) : areas.low.push(todo);
   });
 
@@ -70,12 +75,17 @@ export default function TodoBoard({ todos, onToggle, onMove }) {
               todo={todo}
               onToggle={onToggle}
               onShowDetail={setDetailTask}
+              labelColors={labelColors}
             />
           ))}
         </div>
       </div>
     );
   }
+
+  // ラベル色マップ作成
+  const labelColors = {};
+  labels.forEach(l => { labelColors[l.label] = l.color; });
 
   return (
     <div className="m-4 grid grid-cols-1 md:grid-cols-2 md:grid-rows-2 gap-4 items-stretch flex-1" style={{ height: 'calc(100vh - 2rem)' }}>
@@ -94,14 +104,14 @@ export default function TodoBoard({ todos, onToggle, onMove }) {
         );
       })}
       {detailTask && (
-        <DetailModal task={detailTask} onClose={() => setDetailTask(null)} />
+        <DetailModal task={detailTask} onClose={() => setDetailTask(null)} labelColors={labelColors} />
       )}
     </div>
   );
 }
 
 // タスク1件表示（ドラッグ＆ドロップ対応）
-const TaskItem = React.memo(function TaskItem({ todo, onToggle, onShowDetail, draggingId, setDraggingId }) {
+const TaskItem = React.memo(function TaskItem({ todo, onToggle, onShowDetail, draggingId, setDraggingId, labelColors = {} }) {
   // ドラッグ開始時
   const handleDragStart = e => {
     e.dataTransfer.setData('text/plain', todo.id);
@@ -111,9 +121,10 @@ const TaskItem = React.memo(function TaskItem({ todo, onToggle, onShowDetail, dr
   const handleDragEnd = () => {
     setDraggingId && setDraggingId(null);
   };
+  const color = labelColors[todo.label] || '#222';
   return (
     <div
-      className={`flex items-center m-0.5 p-1 bg-white rounded shadow-sm relative transition-all cursor-pointer select-none text-sm${draggingId === todo.id ? ' opacity-50' : ''}`}
+      className={`flex items-center m-0.5 p-1 bg-white rounded shadow-sm relative transition-all cursor-pointer select-none text-sm${draggingId === todo.id ? ' opacity-50' : ''}${todo._isHidden ? ' opacity-40 pointer-events-auto' : ''}`}
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
@@ -134,9 +145,15 @@ const TaskItem = React.memo(function TaskItem({ todo, onToggle, onShowDetail, dr
       >
         {todo.title.length > 14 ? todo.title.slice(0, 14) + '…' : todo.title}
       </span>
+      {/* ラベル色の丸（未設定は非表示） */}
+      {todo.label && todo.label !== '未設定' && (
+        <span className="ml-2 mr-1 inline-block align-middle" title={todo.label}>
+          <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: labelColors[todo.label], border: '1px solid #ccc' }} />
+        </span>
+      )}
       {/* 三本線アイコン */}
       <span
-        className="ml-2 select-none px-0.5 text-gray-400 cursor-grab active:cursor-grabbing"
+        className="ml-1 select-none px-0.5 text-gray-400 cursor-grab active:cursor-grabbing"
         title="ドラッグして移動"
       >
         <svg width="16" height="16" viewBox="0 0 18 18" className="block">
@@ -150,13 +167,14 @@ const TaskItem = React.memo(function TaskItem({ todo, onToggle, onShowDetail, dr
 });
 
 // タスク詳細モーダル
-const DetailModal = React.memo(function DetailModal({ task, onClose }) {
+const DetailModal = React.memo(function DetailModal({ task, onClose, labelColors = {} }) {
   // エリア名の日本語変換
   const areaLabel =
     task.area === 'urgent_important' ? '緊急かつ重要'
     : task.area === 'important' ? '重要'
     : task.area === 'urgent' ? '緊急'
     : '低優先';
+  const color = (task.label && task.label !== '未設定') ? (labelColors[task.label] || '#e57373') : '#bdbdbd';
   return (
     <div
       className="fixed top-0 left-0 w-screen h-screen bg-black/20 flex items-center justify-center z-[2000]"
@@ -166,10 +184,10 @@ const DetailModal = React.memo(function DetailModal({ task, onClose }) {
         className="bg-white p-8 rounded-xl min-w-[320px] shadow-xl"
         onClick={e => e.stopPropagation()}
       >
-        <h2 className="mb-4 text-lg font-bold">タスク詳細</h2>
         <div className="font-bold text-base mb-2 break-all">{task.title}</div>
-        <div>エリア: {areaLabel}</div>
-        <div>完了: {task.done ? '✔' : '未完了'}</div>
+        <div className="mb-1"><span className="inline-block px-2 py-0.5 rounded text-white" style={{background: color}}>{task.label || '未設定'}</span></div>
+        <div>{areaLabel}</div>
+        <div>{task.done ? '完了済み' : '未完了'}</div>
         <button
           className="mt-6 px-6 py-2 bg-indigo-500 text-white rounded font-bold"
           onClick={onClose}

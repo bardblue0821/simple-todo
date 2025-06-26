@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 
-export default function TodoModal({ open, onClose, onSubmit }) {
+export default function TodoModal({ open, onClose, onSubmit, labelOptions = [] }) {
   const [title, setTitle] = useState('');
+  const [label, setLabel] = useState('');
   const inputRef = useRef(null);
 
   // モーダルが開いたときに入力欄にフォーカス
@@ -12,8 +13,11 @@ export default function TodoModal({ open, onClose, onSubmit }) {
   }, [open]);
 
   // モーダルが閉じられたら入力値をリセット
-  React.useEffect(() => {
-    if (!open) setTitle('');
+  useEffect(() => {
+    if (!open) {
+      setTitle('');
+      setLabel('');
+    }
   }, [open]);
 
   // 入力変更
@@ -21,21 +25,31 @@ export default function TodoModal({ open, onClose, onSubmit }) {
     setTitle(e.target.value);
   }, []);
 
+  // ドロップダウン選択
+  const handleLabelSelect = useCallback((e) => {
+    setLabel(e.target.value);
+  }, []);
+
   // Enterキーで保存
-  const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Enter' && title.trim()) {
-      onSubmit(title);
-      setTitle('');
-    }
-  }, [onSubmit, title]);
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (e.key === 'Enter' && title.trim()) {
+        onSubmit(title, label ? label : '未設定');
+        setTitle('');
+        setLabel('');
+      }
+    },
+    [onSubmit, title, label]
+  );
 
   // 保存ボタン
   const handleSubmit = useCallback(() => {
     if (title.trim()) {
-      onSubmit(title);
+      onSubmit(title, label ? label : '未設定');
       setTitle('');
+      setLabel('');
     }
-  }, [onSubmit, title]);
+  }, [onSubmit, title, label]);
 
   if (!open) return null;
 
@@ -52,6 +66,16 @@ export default function TodoModal({ open, onClose, onSubmit }) {
           className="w-full p-2 mb-4 text-base border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
           ref={inputRef}
         />
+        <select
+          className="w-full p-2 mb-4 border border-gray-300 rounded bg-gray-50 text-base"
+          value={label}
+          onChange={handleLabelSelect}
+        >
+          <option value="">未設定</option>
+          {labelOptions.map((l, i) => (
+            <option value={l} key={i}>{l}</option>
+          ))}
+        </select>
         <div className="flex justify-end gap-2">
           <button
             onClick={onClose}
