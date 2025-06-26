@@ -29,6 +29,7 @@ function App() {
     }
   });
   const [hiddenLabels, setHiddenLabels] = useState([]);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   // タスク一覧をlocalStorageに保存
   useEffect(() => {
@@ -79,13 +80,7 @@ function App() {
           onNewTodo={() => setModalOpen(true)} 
           onNewLabel={() => setLabelModalOpen(true)} 
           labels={labels} 
-          onDeleteLabel={labelToDelete => {
-            setLabels(prev => prev.filter(l => l.label !== labelToDelete));
-            setTodos(prevTodos => prevTodos.map(todo =>
-              todo.label === labelToDelete ? { ...todo, label: '未設定' } : todo
-            ));
-            setHiddenLabels(prev => prev.filter(l => l !== labelToDelete));
-          }}
+          onDeleteLabel={setDeleteTarget}
           hiddenLabels={hiddenLabels}
           onToggleHideLabel={label => {
             setHiddenLabels(prev => prev.includes(label)
@@ -119,6 +114,31 @@ function App() {
         }}
         labels={labels}
       />
+      {deleteTarget && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/30"></div>
+          <div className="bg-white p-6 rounded-xl shadow-xl min-w-[280px] z-10">
+            <div className="mb-4 text-base">ラベル「{deleteTarget}」を削除しますか？</div>
+            <div className="flex justify-end gap-2">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded font-medium hover:bg-gray-300"
+                onClick={() => setDeleteTarget(null)}
+              >キャンセル</button>
+              <button
+                className="px-4 py-2 bg-red-500 text-white rounded font-bold hover:bg-red-600"
+                onClick={() => {
+                  setLabels(prev => prev.filter(l => l.label !== deleteTarget));
+                  setTodos(prevTodos => prevTodos.map(todo =>
+                    todo.label === deleteTarget ? { ...todo, label: '未設定' } : todo
+                  ));
+                  setHiddenLabels(prev => prev.filter(l => l !== deleteTarget));
+                  setDeleteTarget(null);
+                }}
+              >削除する</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
