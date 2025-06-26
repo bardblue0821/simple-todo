@@ -2,14 +2,15 @@ import React, { useState, useRef, useEffect } from 'react';
 
 // 13色のカラーパレット
 const COLOR_PALETTE = [
-  '#505050', 
-  '#e57373', '#f06292', '#ba68c8', '#9575cd', '#7986cb', '#64b5f6',
-  '#4dd0e1', '#4db6ac', '#81c784', '#ffd54f', '#ffb74d', '#a1887f',
+  '#505050', '#f07373', '#ba68c8', '#9575cd', 
+  '#7986cb', '#64b5f6', '#4dd0e1', '#4db6ac', 
+  '#81c784', '#ffd54f', '#ffa74d', '#a1887f',
 ];
 
-export default function LabelModal({ open, onClose, onSubmit }) {
+export default function LabelModal({ open, onClose, onSubmit, labels = [] }) {
   const [label, setLabel] = useState('');
   const [color, setColor] = useState(COLOR_PALETTE[0]);
+  const [error, setError] = useState('');
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -19,15 +20,24 @@ export default function LabelModal({ open, onClose, onSubmit }) {
     if (!open) {
       setLabel('');
       setColor(COLOR_PALETTE[0]);
+      setError('');
     }
   }, [open]);
 
   const handleSubmit = () => {
-    if (label.trim()) {
-      onSubmit(label.trim(), color);
-      setLabel('');
-      setColor(COLOR_PALETTE[0]);
+    const trimmed = label.trim();
+    if (!trimmed) {
+      setError('ラベル名を入力してください');
+      return;
     }
+    if (labels.some(l => l.label === trimmed)) {
+      setError('同じラベル名は登録できません');
+      return;
+    }
+    onSubmit(trimmed, color);
+    setLabel('');
+    setColor(COLOR_PALETTE[0]);
+    setError('');
   };
 
   if (!open) return null;
@@ -39,14 +49,17 @@ export default function LabelModal({ open, onClose, onSubmit }) {
         <input
           type="text"
           value={label}
-          onChange={e => setLabel(e.target.value.slice(0, 20))}
+          onChange={e => {
+            setLabel(e.target.value.slice(0, 20));
+            setError('');
+          }}
           maxLength={20}
           placeholder="ラベル名（20文字まで）"
           className="w-full p-2 mb-4 text-base border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-400"
           ref={inputRef}
         />
+        {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
         <div className="mb-4">
-          <label className="font-medium block mb-2">色:</label>
           <div className="grid grid-cols-4 grid-rows-3 gap-2">
             {COLOR_PALETTE.map((c) => (
               <button
@@ -59,7 +72,6 @@ export default function LabelModal({ open, onClose, onSubmit }) {
               />
             ))}
           </div>
-          <span className="ml-2 text-sm">{color}</span>
         </div>
         <div className="flex justify-end gap-2">
           <button

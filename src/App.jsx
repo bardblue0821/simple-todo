@@ -117,6 +117,7 @@ function App() {
           setLabels(prev => [...prev, { label, color }]);
           setLabelModalOpen(false);
         }}
+        labels={labels}
       />
     </div>
   );
