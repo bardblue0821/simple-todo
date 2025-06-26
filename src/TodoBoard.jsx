@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function TodoBoard({ todos, onToggle, onMove, labels = [] }) {
+export default function TodoBoard({ todos, onToggle, onMove, labels = [], hiddenLabels = [] }) {
   // タスクを4象限に分類
   const areas = {
     important: [],
@@ -8,7 +8,9 @@ export default function TodoBoard({ todos, onToggle, onMove, labels = [] }) {
     urgent: [],
     low: [],
   };
-  todos.forEach(todo => {
+  // 表示対象のタスクのみ抽出
+  const visibleTodos = todos.filter(todo => !hiddenLabels.includes(todo.label));
+  visibleTodos.forEach(todo => {
     areas[todo.area] ? areas[todo.area].push(todo) : areas.low.push(todo);
   });
 

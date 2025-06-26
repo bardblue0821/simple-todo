@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function MenuBar({ onNewTodo, onNewLabel, labels = [], onDeleteLabel }) {
+export default function MenuBar({ onNewTodo, onNewLabel, labels = [], onDeleteLabel, hiddenLabels = [], onToggleHideLabel }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   return (
@@ -9,22 +9,39 @@ export default function MenuBar({ onNewTodo, onNewLabel, labels = [], onDeleteLa
         <NewTodoButton onClick={onNewTodo} />
         <NewLabelButton onClick={onNewLabel} />
         <div className="mt-6 px-4 w-full">
-          <div className="mb-2 text-xs text-gray-500 font-bold">ラベル一覧</div>
           <ul>
-            {labels.map(l => (
-              <li key={l.label} className="flex items-center mb-2 group">
-                <span style={{ display: 'inline-block', width: 14, height: 14, borderRadius: '50%', background: l.color, border: '1px solid #ccc', marginRight: 8 }} />
-                <span className="text-sm text-gray-700 mr-1">{l.label}</span>
-                <button
-                  className="text-gray-400 hover:text-red-400 text-base px-1 focus:outline-none"
+            {labels.map(l => {
+              const isHidden = hiddenLabels.includes(l.label);
+                return (
+                <li key={l.label} className="flex items-center mb-2 group">
+                  <button
+                  className={`
+                    flex items-center px-0 py-0 border-none bg-white focus:outline-none
+                    ${isHidden ? 'opacity-40' : ''}
+                  `}
+                  onClick={() => onToggleHideLabel && onToggleHideLabel(l.label)}
+                  title={isHidden ? 'このラベルのタスクを表示' : 'このラベルのタスクを非表示'}
+                  >
+                  <span
+                    className="inline-block rounded-full mr-2 transition-all"
+                    style={{
+                    width: 14,
+                    height: 14,
+                    background: l.color,
+                    }}
+                  />
+                  <span className="text-sm text-gray-700 mr-1">{l.label}</span>
+                  </button>
+                  <button
+                  className="text-gray-400 hover:text-red-400 text-base px-1 focus:outline-none font-normal bg-white border-none leading-none"
                   onClick={() => setDeleteTarget(l.label)}
                   title="ラベル削除"
-                  style={{ fontWeight: 'normal', background: 'none', border: 'none', lineHeight: 1 }}
-                >
+                  >
                   ×
-                </button>
-              </li>
-            ))}
+                  </button>
+                </li>
+                );
+            })}
           </ul>
         </div>
         {deleteTarget && (

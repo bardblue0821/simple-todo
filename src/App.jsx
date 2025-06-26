@@ -28,6 +28,7 @@ function App() {
       return [];
     }
   });
+  const [hiddenLabels, setHiddenLabels] = useState([]);
 
   // タスク一覧をlocalStorageに保存
   useEffect(() => {
@@ -83,6 +84,14 @@ function App() {
             setTodos(prevTodos => prevTodos.map(todo =>
               todo.label === labelToDelete ? { ...todo, label: '未設定' } : todo
             ));
+            setHiddenLabels(prev => prev.filter(l => l !== labelToDelete));
+          }}
+          hiddenLabels={hiddenLabels}
+          onToggleHideLabel={label => {
+            setHiddenLabels(prev => prev.includes(label)
+              ? prev.filter(l => l !== label)
+              : [...prev, label]
+            );
           }}
         />
       </aside>
@@ -92,6 +101,7 @@ function App() {
           onMove={handleMoveTodo}
           onToggle={handleToggleDone}
           labels={labels}
+          hiddenLabels={hiddenLabels}
         />
       </main>
       <TodoModal
