@@ -9,7 +9,10 @@ export default function TodoBoard({ todos, onToggle, onMove, labels = [], hidden
     low: [],
   };
   // 表示対象のタスクのみ抽出
-  const visibleTodos = todos.filter(todo => !hiddenLabels.includes(todo.label));
+  const visibleTodos = todos.map(todo => ({
+    ...todo,
+    _isHidden: hiddenLabels.includes(todo.label)
+  }));
   visibleTodos.forEach(todo => {
     areas[todo.area] ? areas[todo.area].push(todo) : areas.low.push(todo);
   });
@@ -121,7 +124,7 @@ const TaskItem = React.memo(function TaskItem({ todo, onToggle, onShowDetail, dr
   const color = labelColors[todo.label] || '#222';
   return (
     <div
-      className={`flex items-center m-0.5 p-1 bg-white rounded shadow-sm relative transition-all cursor-pointer select-none text-sm${draggingId === todo.id ? ' opacity-50' : ''}`}
+      className={`flex items-center m-0.5 p-1 bg-white rounded shadow-sm relative transition-all cursor-pointer select-none text-sm${draggingId === todo.id ? ' opacity-50' : ''}${todo._isHidden ? ' opacity-40 pointer-events-auto' : ''}`}
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
