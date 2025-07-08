@@ -1,4 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import PrimaryButton from '/src/components/buttons/PrimaryButton';
+import SecondaryButton from '/src/components/buttons/SecondaryButton';
 
 export default function TodoModal({ open, onClose, onSubmit, labelOptions = [] }) {
   const [title, setTitle] = useState('');
@@ -77,18 +79,12 @@ export default function TodoModal({ open, onClose, onSubmit, labelOptions = [] }
           ))}
         </select>
         <div className="flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-200 rounded font-medium hover:bg-gray-300"
-          >
+          <SecondaryButton onClick={onClose}>
             キャンセル
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="px-4 py-2 bg-indigo-600 text-white rounded font-bold hover:bg-indigo-700"
-          >
+          </SecondaryButton>
+          <PrimaryButton onClick={handleSubmit}>
             確定
-          </button>
+          </PrimaryButton>
         </div>
       </div>
     </div>

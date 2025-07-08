@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import DetailModal from './components/modals/DetailModal';
+import PrimaryButton from './components/buttons/PrimaryButton';
 
 export default function TodoBoard({ todos, onToggle, onMove, labels = [], hiddenLabels = [] }) {
   // タスクを4象限に分類
@@ -166,35 +168,11 @@ const TaskItem = React.memo(function TaskItem({ todo, onToggle, onShowDetail, dr
   );
 });
 
-// タスク詳細モーダル
-const DetailModal = React.memo(function DetailModal({ task, onClose, labelColors = {} }) {
-  // エリア名の日本語変換
-  const areaLabel =
-    task.area === 'urgent_important' ? '緊急かつ重要'
-    : task.area === 'important' ? '重要'
-    : task.area === 'urgent' ? '緊急'
-    : '低優先';
-  const color = (task.label && task.label !== '未設定') ? (labelColors[task.label] || '#e57373') : '#bdbdbd';
+// ラベル色付きバッジコンポーネント
+function LabelBadge({ label, color }) {
   return (
-    <div
-      className="fixed top-0 left-0 w-screen h-screen bg-black/20 flex items-center justify-center z-[2000]"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white p-8 rounded-xl min-w-[320px] shadow-xl"
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="font-bold text-base mb-2 break-all">{task.title}</div>
-        <div className="mb-1"><span className="inline-block px-2 py-0.5 rounded text-white" style={{background: color}}>{task.label || '未設定'}</span></div>
-        <div>{areaLabel}</div>
-        <div>{task.done ? '完了済み' : '未完了'}</div>
-        <button
-          className="mt-6 px-6 py-2 bg-indigo-500 text-white rounded font-bold"
-          onClick={onClose}
-        >
-          閉じる
-        </button>
-      </div>
-    </div>
+    <span className="inline-block px-2 py-0.5 rounded text-white" style={{ background: color }}>
+      {label || '未設定'}
+    </span>
   );
-});
+}

@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import TodoBoard from './TodoBoard';
 import Logo from './Logo';
 import MenuBar from './MenuBar';
-import TodoModal from './TodoModal';
-import LabelModal from './LabelModal';
+import TodoModal from './components/modals/TodoModal';
+import LabelModal from './components/modals/LabelModal';
 
 const STORAGE_KEY = 'todo-app-tasks-v1';
 
