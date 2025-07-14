@@ -52,7 +52,7 @@ export default function TodoBoard({ todos, onToggle, onMove, labels = [], hidden
   };
 
   // タスク詳細モーダルの状態
-  const [detailTask, setDetailTask] = useState(null);
+  const [editTask, setEditTask] = useState(null);
 
   // エリアカラム（ドラッグ＆ドロップ対応）
   function AreaColumn({ areaKey, areaList, title, col, row, tailwind }) {
@@ -84,7 +84,7 @@ export default function TodoBoard({ todos, onToggle, onMove, labels = [], hidden
               key={todo.id}
               todo={todo}
               onToggle={onToggle}
-              onShowDetail={setDetailTask}
+              onShowDetail={() => setEditTask(todo)}
               labelColors={labelColors}
             />
           ))}
@@ -113,14 +113,14 @@ export default function TodoBoard({ todos, onToggle, onMove, labels = [], hidden
             tailwind={def.tailwind}
           />
         ))}
-      {detailTask && (
+      {editTask && (
         <EditTodoModal
-          task={detailTask}
+          task={editTask}
           labels={labels}
-          onClose={() => setDetailTask(null)}
+          onClose={() => setEditTask(null)}
           onSubmit={(title, label) => {
-            onEditTodo && onEditTodo(detailTask.id, title, label);
-            setDetailTask(null);
+            onEditTodo && onEditTodo(editTask.id, title, label);
+            setEditTask(null);
           }}
         />
       )}

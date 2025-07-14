@@ -1,8 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 export default function EditTodoModal({ task, labels, onClose, onSubmit }) {
   const [title, setTitle] = useState(task.title);
   const [label, setLabel] = useState(task.label);
+  const [isEditing, setIsEditing] = useState(false);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.select();
+    }
+  }, [isEditing]);
 
   const handleSubmit = () => {
     if (title.trim()) {
@@ -15,14 +23,27 @@ export default function EditTodoModal({ task, labels, onClose, onSubmit }) {
   return (
     <div className="fixed inset-0 w-screen h-screen bg-black/30 flex items-center justify-center z-[2100]">
       <div className="bg-white p-8 rounded-xl min-w-[320px] shadow-lg">
-        <input
-          type="text"
-          value={title}
-          onChange={e => setTitle(e.target.value.slice(0, 50))}
-          maxLength={50}
-          placeholder="タイトルを編集"
-          className="w-full p-2 mb-4 text-base border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-        />
+        {isEditing ? (
+          <input
+            type="text"
+            value={title}
+            onChange={e => setTitle(e.target.value.slice(0, 50))}
+            onBlur={() => setIsEditing(false)}
+            autoFocus
+            ref={inputRef}
+            maxLength={50}
+            placeholder="タイトルを編集"
+            className="w-full p-2 mb-4 text-base border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          />
+        ) : (
+          <span
+            className="block mb-4 text-xl font-bold cursor-pointer"
+            onClick={() => setIsEditing(true)}
+            title="クリックで編集"
+          >
+            {title}
+          </span>
+        )}
         <select
           className="w-full p-2 mb-4 border border-gray-300 rounded bg-gray-50 text-base"
           value={label}
