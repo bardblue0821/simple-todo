@@ -19,35 +19,43 @@ export default function TodoBoard({ todos, onToggle, onMove, labels = [], hidden
     areas[todo.area] ? areas[todo.area].push(todo) : areas.low.push(todo);
   });
 
-  // エリアごとの色
-  const areaTailwind = {
-    important: 'bg-green-50',
-    urgent_important: 'bg-red-50',
-    urgent: 'bg-orange-50',
-    low: 'bg-gray-100',
+  // エリア情報をまとめた定義
+  const areaDefs = {
+    urgent_important: {
+      col: 2,
+      row: 1,
+      title: '緊急かつ重要',
+      tailwind: 'bg-red-50',
+      order: 0,
+    },
+    important: {
+      col: 1,
+      row: 1,
+      title: '重要',
+      tailwind: 'bg-green-50',
+      order: 1,
+    },
+    urgent: {
+      col: 2,
+      row: 2,
+      title: '緊急',
+      tailwind: 'bg-orange-50',
+      order: 2,
+    },
+    low: {
+      col: 1,
+      row: 2,
+      title: '低優先',
+      tailwind: 'bg-gray-100',
+      order: 3,
+    },
   };
-
-  // エリアのグリッド位置・タイトル
-  const areaGrid = {
-    urgent_important: { col: 2, row: 1, title: '緊急かつ重要' },
-    urgent: { col: 2, row: 2, title: '緊急' },
-    important: { col: 1, row: 1, title: '重要' },
-    low: { col: 1, row: 2, title: '低優先' },
-  };
-
-  // エリアの順番
-  const areaOrder = [
-    'urgent_important', // 緊急かつ重要
-    'important',        // 重要
-    'urgent',           // 緊急
-    'low',              // 低優先
-  ];
 
   // タスク詳細モーダルの状態
   const [detailTask, setDetailTask] = useState(null);
 
   // エリアカラム（ドラッグ＆ドロップ対応）
-  function AreaColumn({ areaKey, areaList, title, col, row }) {
+  function AreaColumn({ areaKey, areaList, title, col, row, tailwind }) {
     // ドラッグオーバー状態
     const [isDragOver, setIsDragOver] = useState(false);
     // ドロップ時の処理
@@ -63,7 +71,7 @@ export default function TodoBoard({ todos, onToggle, onMove, labels = [], hidden
     };
     return (
       <div
-        className={`flex flex-col ${areaTailwind[areaKey]} overflow-hidden rounded-xl border border-gray-200 p-4 md:col-start-${col} md:row-start-${row} [height:var(--area-height)] md:[height:calc(50vh-1rem)]${isDragOver ? ' ring-2 ring-indigo-400 bg-indigo-50/40' : ''}`}
+        className={`flex flex-col ${tailwind} overflow-hidden rounded-xl border border-gray-200 p-4 md:col-start-${col} md:row-start-${row} [height:var(--area-height)] md:[height:calc(50vh-1rem)]${isDragOver ? ' ring-2 ring-indigo-400 bg-indigo-50/40' : ''}`}
         style={{ '--area-height': 'calc((100vh - 5rem) / 4)' }}
         onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
         onDragLeave={() => setIsDragOver(false)}
@@ -92,19 +100,19 @@ export default function TodoBoard({ todos, onToggle, onMove, labels = [], hidden
   return (
     <div className="m-4 grid grid-cols-1 md:grid-cols-2 md:grid-rows-2 gap-4 items-stretch flex-1" style={{ height: 'calc(100vh - 2rem)' }}>
       {/* 2rem=32px分マージン考慮 */}
-      {areaOrder.map(areaKey => {
-        const { col, row, title } = areaGrid[areaKey];
-        return (
+      {Object.entries(areaDefs)
+        .sort((a, b) => a[1].order - b[1].order)
+        .map(([areaKey, def]) => (
           <AreaColumn
             key={areaKey}
             areaKey={areaKey}
             areaList={areas[areaKey]}
-            title={title}
-            col={col}
-            row={row}
+            title={def.title}
+            col={def.col}
+            row={def.row}
+            tailwind={def.tailwind}
           />
-        );
-      })}
+        ))}
       {detailTask && (
         <DetailModal task={detailTask} onClose={() => setDetailTask(null)} labelColors={labelColors} />
       )}

@@ -4,41 +4,34 @@ import Logo from './Logo';
 import MenuBar from './MenuBar';
 import TodoModal from './components/modals/TodoModal';
 import LabelModal from './components/modals/LabelModal';
+import DeleteLabelModal from './components/modals/DeleteLabelModal';
 
 const STORAGE_KEY = 'todo-app-tasks-v1';
+const LABELS_KEY = 'todo-app-labels-v1';
+
+function useLocalStorageState(key, initialValue) {
+  const [state, setState] = useState(() => {
+    try {
+      const saved = localStorage.getItem(key);
+      return saved ? JSON.parse(saved) : initialValue;
+    } catch {
+      return initialValue;
+    }
+  });
+  useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(state));
+  }, [key, state]);
+  return [state, setState];
+}
 
 function App() {
-  // タスク一覧の状態管理
-  const [todos, setTodos] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-  // モーダル表示状態
-  const [modalOpen, setModalOpen] = useState(false);
+  // 状態管理
+  const [todos, setTodos] = useLocalStorageState(STORAGE_KEY, []);
+  const [labels, setLabels] = useLocalStorageState(LABELS_KEY, []);
+  const [todoModalOpen, setTodoModalOpen] = useState(false);
   const [labelModalOpen, setLabelModalOpen] = useState(false);
-  const [labels, setLabels] = useState(() => {
-    try {
-      const saved = localStorage.getItem('todo-app-labels-v1');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
   const [hiddenLabels, setHiddenLabels] = useState([]);
   const [deleteTarget, setDeleteTarget] = useState(null);
-
-  // タスク一覧をlocalStorageに保存
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
-  }, [todos]);
-
-  useEffect(() => {
-    localStorage.setItem('todo-app-labels-v1', JSON.stringify(labels));
-  }, [labels]);
 
   // タスクのエリア移動・並び替え
   const handleMoveTodo = (arg1, arg2) => {
@@ -69,7 +62,17 @@ function App() {
       ...prevTodos,
       { id: Date.now(), title, label, area: 'urgent_important', done: false }
     ]);
-    setModalOpen(false);
+    setTodoModalOpen(false);
+  };
+
+  // ラベル削除処理
+  const handleDeleteLabel = () => {
+    setLabels(prev => prev.filter(l => l.label !== deleteTarget));
+    setTodos(prevTodos => prevTodos.map(todo =>
+      todo.label === deleteTarget ? { ...todo, label: '未設定' } : todo
+    ));
+    setHiddenLabels(prev => prev.filter(l => l !== deleteTarget));
+    setDeleteTarget(null);
   };
 
   return (
@@ -77,7 +80,7 @@ function App() {
       <aside className="w-[220px] bg-white shadow-[2px_0_8px_#e5e7eb] sticky top-0 h-screen flex flex-col">
         <Logo />
         <MenuBar 
-          onNewTodo={() => setModalOpen(true)} 
+          onNewTodo={() => setTodoModalOpen(true)} 
           onNewLabel={() => setLabelModalOpen(true)} 
           labels={labels} 
           onDeleteLabel={setDeleteTarget}
@@ -100,8 +103,8 @@ function App() {
         />
       </main>
       <TodoModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        open={todoModalOpen}
+        onClose={() => setTodoModalOpen(false)}
         onSubmit={handleNewTodo}
         labelOptions={labels.map(l => l.label)}
       />
@@ -115,29 +118,11 @@ function App() {
         labels={labels}
       />
       {deleteTarget && (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/30"></div>
-          <div className="bg-white p-6 rounded-xl shadow-xl min-w-[280px] z-10">
-            <div className="mb-4 text-base">ラベル「{deleteTarget}」を削除しますか？</div>
-            <div className="flex justify-end gap-2">
-              <button
-                className="px-4 py-2 bg-gray-200 rounded font-medium hover:bg-gray-300"
-                onClick={() => setDeleteTarget(null)}
-              >キャンセル</button>
-              <button
-                className="px-4 py-2 bg-red-500 text-white rounded font-bold hover:bg-red-600"
-                onClick={() => {
-                  setLabels(prev => prev.filter(l => l.label !== deleteTarget));
-                  setTodos(prevTodos => prevTodos.map(todo =>
-                    todo.label === deleteTarget ? { ...todo, label: '未設定' } : todo
-                  ));
-                  setHiddenLabels(prev => prev.filter(l => l !== deleteTarget));
-                  setDeleteTarget(null);
-                }}
-              >削除する</button>
-            </div>
-          </div>
-        </div>
+        <DeleteLabelModal
+          label={deleteTarget}
+          onCancel={() => setDeleteTarget(null)}
+          onDelete={handleDeleteLabel}
+        />
       )}
     </div>
   );
