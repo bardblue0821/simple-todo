@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import DetailModal from './components/modals/DetailModal';
 import EditTodoModal from './components/modals/EditTodoModal';
 import PrimaryButton from './components/buttons/PrimaryButton';
 
