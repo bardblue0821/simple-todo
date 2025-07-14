@@ -27,7 +27,7 @@ function ColorPalette({ palette, selected, onSelect }) {
   );
 }
 
-export default function LabelModal({ open, onClose, onSubmit, labels = [] }) {
+export default function CreateLabelModal({ open, onClose, onSubmit, labels = [] }) {
   const [label, setLabel] = useState('');
   const [color, setColor] = useState(COLOR_PALETTE[0]);
   const [error, setError] = useState('');

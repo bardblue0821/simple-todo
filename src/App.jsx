@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import TodoBoard from './TodoBoard';
 import Logo from './Logo';
 import MenuBar from './MenuBar';
-import TodoModal from './components/modals/TodoModal';
-import LabelModal from './components/modals/LabelModal';
+import CreateTodoModal from './components/modals/CreateTodoModal';
+import CreateLabelModal from './components/modals/CreateLabelModal';
 import DeleteLabelModal from './components/modals/DeleteLabelModal';
+import EditTodoModal from './components/modals/EditTodoModal';
 
 const STORAGE_KEY = 'todo-app-tasks-v1';
 const LABELS_KEY = 'todo-app-labels-v1';
@@ -32,6 +33,7 @@ function App() {
   const [labelModalOpen, setLabelModalOpen] = useState(false);
   const [hiddenLabels, setHiddenLabels] = useState([]);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [editTask, setEditTask] = useState(null);
 
   // タスクのエリア移動・並び替え
   const handleMoveTodo = (arg1, arg2) => {
@@ -100,15 +102,21 @@ function App() {
           onToggle={handleToggleDone}
           labels={labels}
           hiddenLabels={hiddenLabels}
+          onEditTodo={(id, title, label) => {
+            setTodos(prevTodos => prevTodos.map(todo =>
+              todo.id === id ? { ...todo, title, label } : todo
+            ));
+          }}
+          setEditTask={setEditTask}
         />
       </main>
-      <TodoModal
+      <CreateTodoModal
         open={todoModalOpen}
         onClose={() => setTodoModalOpen(false)}
         onSubmit={handleNewTodo}
         labelOptions={labels.map(l => l.label)}
       />
-      <LabelModal
+      <CreateLabelModal
         open={labelModalOpen}
         onClose={() => setLabelModalOpen(false)}
         onSubmit={(label, color) => {
@@ -122,6 +130,19 @@ function App() {
           label={deleteTarget}
           onCancel={() => setDeleteTarget(null)}
           onDelete={handleDeleteLabel}
+        />
+      )}
+      {editTask && (
+        <EditTodoModal
+          task={editTask}
+          labels={labels}
+          onClose={() => setEditTask(null)}
+          onSubmit={(title, label) => {
+            setTodos(prevTodos => prevTodos.map(todo =>
+              todo.id === editTask.id ? { ...todo, title, label } : todo
+            ));
+            setEditTask(null);
+          }}
         />
       )}
     </div>

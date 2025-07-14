@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import DetailModal from './components/modals/DetailModal';
+import EditTodoModal from './components/modals/EditTodoModal';
 import PrimaryButton from './components/buttons/PrimaryButton';
 
-export default function TodoBoard({ todos, onToggle, onMove, labels = [], hiddenLabels = [] }) {
+export default function TodoBoard({ todos, onToggle, onMove, labels = [], hiddenLabels = [], onEditTodo }) {
   // タスクを4象限に分類
   const areas = {
     important: [],
@@ -71,7 +72,7 @@ export default function TodoBoard({ todos, onToggle, onMove, labels = [], hidden
     };
     return (
       <div
-        className={`flex flex-col ${tailwind} overflow-hidden rounded-xl border border-gray-200 p-4 md:col-start-${col} md:row-start-${row} [height:var(--area-height)] md:[height:calc(50vh-1rem)]${isDragOver ? ' ring-2 ring-indigo-400 bg-indigo-50/40' : ''}`}
+        className={`flex flex-col ${tailwind} overflow-hidden rounded-xl p-4 md:col-start-${col} md:row-start-${row} [height:var(--area-height)] md:[height:calc(50vh-1rem)]${isDragOver ? ' ring-2 ring-indigo-400 bg-indigo-50/40' : ''}`}
         style={{ '--area-height': 'calc((100vh - 5rem) / 4)' }}
         onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
         onDragLeave={() => setIsDragOver(false)}
@@ -114,7 +115,15 @@ export default function TodoBoard({ todos, onToggle, onMove, labels = [], hidden
           />
         ))}
       {detailTask && (
-        <DetailModal task={detailTask} onClose={() => setDetailTask(null)} labelColors={labelColors} />
+        <EditTodoModal
+          task={detailTask}
+          labels={labels}
+          onClose={() => setDetailTask(null)}
+          onSubmit={(title, label) => {
+            onEditTodo && onEditTodo(detailTask.id, title, label);
+            setDetailTask(null);
+          }}
+        />
       )}
     </div>
   );
@@ -158,7 +167,7 @@ const TaskItem = React.memo(function TaskItem({ todo, onToggle, onShowDetail, dr
       {/* ラベル色の丸（未設定は非表示） */}
       {todo.label && todo.label !== '未設定' && (
         <span className="ml-2 mr-1 inline-block align-middle" title={todo.label}>
-          <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: labelColors[todo.label], border: '1px solid #ccc' }} />
+          <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: labelColors[todo.label]}} />
         </span>
       )}
       {/* 三本線アイコン */}
