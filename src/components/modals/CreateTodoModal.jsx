@@ -1,18 +1,18 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import PrimaryButton from '/src/components/buttons/PrimaryButton';
+import SecondaryButton from '/src/components/buttons/SecondaryButton';
 
-export default function TodoModal({ open, onClose, onSubmit, labelOptions = [] }) {
+export default function CreateTodoModal({ open, onClose, onSubmit, labelOptions = [] }) {
   const [title, setTitle] = useState('');
   const [label, setLabel] = useState('');
   const inputRef = useRef(null);
 
-  // モーダルが開いたときに入力欄にフォーカス
   useEffect(() => {
     if (open && inputRef.current) {
       inputRef.current.focus();
     }
   }, [open]);
 
-  // モーダルが閉じられたら入力値をリセット
   useEffect(() => {
     if (!open) {
       setTitle('');
@@ -20,17 +20,14 @@ export default function TodoModal({ open, onClose, onSubmit, labelOptions = [] }
     }
   }, [open]);
 
-  // 入力変更
   const handleChange = useCallback((e) => {
     setTitle(e.target.value);
   }, []);
 
-  // ドロップダウン選択
   const handleLabelSelect = useCallback((e) => {
     setLabel(e.target.value);
   }, []);
 
-  // Enterキーで保存
   const handleKeyDown = useCallback(
     (e) => {
       if (e.key === 'Enter' && title.trim()) {
@@ -42,7 +39,6 @@ export default function TodoModal({ open, onClose, onSubmit, labelOptions = [] }
     [onSubmit, title, label]
   );
 
-  // 保存ボタン
   const handleSubmit = useCallback(() => {
     if (title.trim()) {
       onSubmit(title, label ? label : '未設定');
@@ -77,18 +73,12 @@ export default function TodoModal({ open, onClose, onSubmit, labelOptions = [] }
           ))}
         </select>
         <div className="flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-200 rounded font-medium hover:bg-gray-300"
-          >
+          <SecondaryButton onClick={onClose}>
             キャンセル
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="px-4 py-2 bg-indigo-600 text-white rounded font-bold hover:bg-indigo-700"
-          >
+          </SecondaryButton>
+          <PrimaryButton onClick={handleSubmit}>
             確定
-          </button>
+          </PrimaryButton>
         </div>
       </div>
     </div>

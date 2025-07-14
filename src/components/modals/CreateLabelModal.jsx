@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import PrimaryButton from '../buttons/PrimaryButton';
+import SecondaryButton from '../buttons/SecondaryButton';
 
 // 13色のカラーパレット
 const COLOR_PALETTE = [
@@ -7,7 +9,25 @@ const COLOR_PALETTE = [
   '#81c784', '#ffd54f', '#ffa74d', '#a1887f',
 ];
 
-export default function LabelModal({ open, onClose, onSubmit, labels = [] }) {
+// カラーパレットボタンのコンポーネント
+function ColorPalette({ palette, selected, onSelect }) {
+  return (
+    <div className="grid grid-cols-4 grid-rows-3 gap-2">
+      {palette.map((c) => (
+        <button
+          key={c}
+          type="button"
+          onClick={() => onSelect(c)}
+          className={`w-8 h-8 rounded-full border-2 ${selected === c ? 'border-black scale-110' : 'border-gray-200'} focus:outline-none`}
+          style={{ backgroundColor: c }}
+          aria-label={`色 ${c}`}
+        />
+      ))}
+    </div>
+  );
+}
+
+export default function CreateLabelModal({ open, onClose, onSubmit, labels = [] }) {
   const [label, setLabel] = useState('');
   const [color, setColor] = useState(COLOR_PALETTE[0]);
   const [error, setError] = useState('');
@@ -60,32 +80,15 @@ export default function LabelModal({ open, onClose, onSubmit, labels = [] }) {
         />
         {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
         <div className="mb-4">
-          <div className="grid grid-cols-4 grid-rows-3 gap-2">
-            {COLOR_PALETTE.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setColor(c)}
-                className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-black scale-110' : 'border-gray-200'} focus:outline-none`}
-                style={{ backgroundColor: c }}
-                aria-label={`色 ${c}`}
-              />
-            ))}
-          </div>
+          <ColorPalette palette={COLOR_PALETTE} selected={color} onSelect={setColor} />
         </div>
         <div className="flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-200 rounded font-medium hover:bg-gray-300"
-          >
+          <SecondaryButton onClick={onClose}>
             キャンセル
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="px-4 py-2 bg-pink-500 text-white rounded font-bold hover:bg-pink-600"
-          >
+          </SecondaryButton>
+          <PrimaryButton onClick={handleSubmit}>
             登録
-          </button>
+          </PrimaryButton>
         </div>
       </div>
     </div>
