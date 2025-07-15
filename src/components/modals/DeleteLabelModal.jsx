@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function DeleteLabelModal({ label, onCancel, onDelete }) {
+  const [fadeIn, setFadeIn] = useState(false);
+  useEffect(() => { setFadeIn(true); }, []);
   return (
-    <div className="fixed inset-0 z-[2000] flex items-center justify-center">
+    <div className={`fixed inset-0 z-[2000] flex items-center justify-center transition-opacity duration-300 ${fadeIn ? 'opacity-100' : 'opacity-0'}`}>
       <div className="absolute inset-0 bg-black/30"></div>
-      <div className="bg-white p-6 rounded-xl shadow-xl min-w-[280px] z-10">
+      <div className="bg-white p-6 rounded-xl shadow-xl min-w-[280px] z-10 transition-all duration-300">
         <div className="mb-4 text-base">ラベル「{label}」を削除しますか？</div>
         <div className="flex justify-end gap-2">
           <button

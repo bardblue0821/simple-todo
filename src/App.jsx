@@ -33,7 +33,7 @@ function App() {
   const [labelModalOpen, setLabelModalOpen] = useState(false);
   const [hiddenLabels, setHiddenLabels] = useState([]);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [editTask, setEditTask] = useState(null);
+  const [editTodo, setEditTodo] = useState(null);
 
   // タスクのエリア移動・並び替え
   const handleMoveTodo = (arg1, arg2) => {
@@ -107,7 +107,11 @@ function App() {
               todo.id === id ? { ...todo, title, label } : todo
             ));
           }}
-          setEditTask={setEditTask}
+          onDeleteTodo={id => {
+            setTodos(prevTodos => prevTodos.filter(todo => todo.id !== id));
+            setEditTodo(null);
+          }}
+          setEditTask={todo => setEditTodo(todo)}
         />
       </main>
       <CreateTodoModal
@@ -132,16 +136,20 @@ function App() {
           onDelete={handleDeleteLabel}
         />
       )}
-      {editTask && (
+      {editTodo && (
         <EditTodoModal
-          task={editTask}
+          task={editTodo}
           labels={labels}
-          onClose={() => setEditTask(null)}
+          onClose={() => setEditTodo(null)}
           onSubmit={(title, label) => {
             setTodos(prevTodos => prevTodos.map(todo =>
-              todo.id === editTask.id ? { ...todo, title, label } : todo
+              todo.id === editTodo.id ? { ...todo, title, label } : todo
             ));
-            setEditTask(null);
+            setEditTodo(null);
+          }}
+          onDelete={() => {
+            setTodos(prevTodos => prevTodos.filter(todo => todo.id !== editTodo.id));
+            setEditTodo(null);
           }}
         />
       )}
