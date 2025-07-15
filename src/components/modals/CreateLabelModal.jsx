@@ -31,12 +31,18 @@ export default function CreateLabelModal({ open, onClose, onSubmit, labels = [] 
   const [label, setLabel] = useState('');
   const [color, setColor] = useState(COLOR_PALETTE[0]);
   const [error, setError] = useState('');
+  const [fadeIn, setFadeIn] = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
     if (open && inputRef.current) {
       inputRef.current.focus();
     }
+    if (open) setFadeIn(true);
+    else setFadeIn(false);
+  }, [open]);
+
+  useEffect(() => {
     if (!open) {
       setLabel('');
       setColor(COLOR_PALETTE[0]);
@@ -63,8 +69,8 @@ export default function CreateLabelModal({ open, onClose, onSubmit, labels = [] 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 w-screen h-screen bg-black/30 flex items-center justify-center z-[1100]">
-      <div className="bg-white p-8 rounded-xl min-w-[320px] shadow-lg">
+    <div className={`fixed inset-0 w-screen h-screen bg-black/30 flex items-center justify-center z-[1100] transition-opacity duration-300 ${fadeIn ? 'opacity-100' : 'opacity-0'}`}>
+      <div className="bg-white p-8 rounded-xl min-w-[320px] shadow-lg transition-all duration-300">
         <h2 className="mb-4 text-xl font-bold">新規ラベル作成</h2>
         <input
           type="text"

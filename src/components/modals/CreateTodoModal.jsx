@@ -5,12 +5,15 @@ import SecondaryButton from '/src/components/buttons/SecondaryButton';
 export default function CreateTodoModal({ open, onClose, onSubmit, labelOptions = [] }) {
   const [title, setTitle] = useState('');
   const [label, setLabel] = useState('');
+  const [fadeIn, setFadeIn] = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
     if (open && inputRef.current) {
       inputRef.current.focus();
     }
+    if (open) setFadeIn(true);
+    else setFadeIn(false);
   }, [open]);
 
   useEffect(() => {
@@ -50,35 +53,32 @@ export default function CreateTodoModal({ open, onClose, onSubmit, labelOptions 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 w-screen h-screen bg-black/30 flex items-center justify-center z-[1000]">
-      <div className="bg-white p-8 rounded-xl min-w-[320px] shadow-lg">
+    <div className={`fixed inset-0 w-screen h-screen bg-black/30 flex items-center justify-center z-[1000] transition-opacity duration-300 ${fadeIn ? 'opacity-100' : 'opacity-0'}`}>
+      <div className="bg-white p-8 rounded-xl min-w-[320px] shadow-lg transition-all duration-300">
         <h2 className="mb-4 text-xl font-bold">新規Todo作成</h2>
         <input
           type="text"
           value={title}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          placeholder="タイトルを入力"
-          className="w-full p-2 mb-4 text-base border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
           ref={inputRef}
+          className="w-full p-2 mb-4 text-base border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          maxLength={50}
+          placeholder="タイトルを入力"
         />
         <select
           className="w-full p-2 mb-4 border border-gray-300 rounded bg-gray-50 text-base"
           value={label}
           onChange={handleLabelSelect}
         >
-          <option value="">未設定</option>
+          <option value="未設定">未設定</option>
           {labelOptions.map((l, i) => (
             <option value={l} key={i}>{l}</option>
           ))}
         </select>
         <div className="flex justify-end gap-2">
-          <SecondaryButton onClick={onClose}>
-            キャンセル
-          </SecondaryButton>
-          <PrimaryButton onClick={handleSubmit}>
-            確定
-          </PrimaryButton>
+          <SecondaryButton onClick={onClose}>キャンセル</SecondaryButton>
+          <PrimaryButton onClick={handleSubmit}>作成</PrimaryButton>
         </div>
       </div>
     </div>

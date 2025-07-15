@@ -1,10 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-export default function EditTodoModal({ task, labels, onClose, onSubmit }) {
+export default function EditTodoModal({ task, labels, onClose, onSubmit, onDelete }) {
   const [title, setTitle] = useState(task.title);
   const [label, setLabel] = useState(task.label);
   const [isEditing, setIsEditing] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [fadeIn, setFadeIn] = useState(false);
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    setFadeIn(true);
+  }, []);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -21,8 +27,8 @@ export default function EditTodoModal({ task, labels, onClose, onSubmit }) {
   if (!task) return null;
 
   return (
-    <div className="fixed inset-0 w-screen h-screen bg-black/30 flex items-center justify-center z-[2100]">
-      <div className="bg-white p-8 rounded-xl min-w-[320px] shadow-lg">
+    <div className={`fixed inset-0 w-screen h-screen bg-black/30 flex items-center justify-center z-[2100] transition-opacity duration-300 ${fadeIn ? 'opacity-100' : 'opacity-0'}`}>
+      <div className="bg-white p-8 rounded-xl min-w-[320px] shadow-lg transition-all duration-300">
         {isEditing ? (
           <input
             type="text"
@@ -60,11 +66,32 @@ export default function EditTodoModal({ task, labels, onClose, onSubmit }) {
             onClick={onClose}
           >キャンセル</button>
           <button
+            className="px-4 py-2 bg-red-500 text-white rounded font-bold hover:bg-red-600"
+            onClick={() => setConfirmDeleteOpen(true)}
+          >削除</button>
+          <button
             className="px-4 py-2 bg-indigo-600 text-white rounded font-bold hover:bg-indigo-700"
             onClick={handleSubmit}
           >保存</button>
         </div>
       </div>
+      {confirmDeleteOpen && (
+        <div className={`fixed inset-0 w-screen h-screen bg-black/40 flex items-center justify-center z-[2200] transition-opacity duration-300 ${fadeIn ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="bg-white p-6 rounded-xl min-w-[280px] shadow-xl text-center transition-all duration-300">
+            <div className="mb-6 text-lg font-semibold">本当に削除してよろしいですか？</div>
+            <div className="flex justify-center gap-4">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded font-medium hover:bg-gray-300"
+                onClick={() => setConfirmDeleteOpen(false)}
+              >キャンセル</button>
+              <button
+                className="px-4 py-2 bg-red-500 text-white rounded font-bold hover:bg-red-600"
+                onClick={() => { setConfirmDeleteOpen(false); onDelete(); }}
+              >削除</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
