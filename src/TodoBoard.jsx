@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import EditTodoModal from './components/modals/EditTodoModal';
 import PrimaryButton from './components/buttons/PrimaryButton';
 
-export default function TodoBoard({ todos, onToggle, onMove, labels = [], hiddenLabels = [], onEditTodo }) {
+export default function TodoBoard({ todos, onToggle, onMove, labels = [], hiddenLabels = [], onEditTodo, onDeleteTodo }) {
   // タスクを4象限に分類
   const areas = {
     important: [],
@@ -120,6 +120,12 @@ export default function TodoBoard({ todos, onToggle, onMove, labels = [], hidden
           onClose={() => setEditTask(null)}
           onSubmit={(title, label) => {
             onEditTodo && onEditTodo(editTask.id, title, label);
+            setEditTask(null);
+          }}
+          onDelete={() => {
+            if (typeof onDeleteTodo === 'function') {
+              onDeleteTodo(editTask.id);
+            }
             setEditTask(null);
           }}
         />
